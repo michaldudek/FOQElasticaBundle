@@ -42,9 +42,9 @@ class TransformedFinder implements PaginatedFinderInterface
 
     public function findHybrid($query, $limit = null)
     {
-        $results = $this->search($query, $limit)->getResults();
+        $results = $this->search($query, $limit);
 
-        return $this->transformer->hybridTransform($results);
+        return $this->hybridTransformResultSet($results);
     }
 
     /**
@@ -72,6 +72,13 @@ class TransformedFinder implements PaginatedFinderInterface
         $results = $resultSet->getResults();
         
         return $this->transformer->transform($results);
+    }
+
+    public function hybridTransformResultSet(Elastica_ResultSet $resultSet)
+    {
+        $results = $resultSet->getResults();
+
+        return $this->transformer->hybridTransform($results);
     }
 
     protected function search($query, $limit = null)
