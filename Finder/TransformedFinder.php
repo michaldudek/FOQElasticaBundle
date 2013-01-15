@@ -10,6 +10,7 @@ use FOQ\ElasticaBundle\Paginator\FantaPaginatorAdapter;
 use Pagerfanta\Pagerfanta;
 use Elastica_Searchable;
 use Elastica_Query;
+use Elastica_ResultSet;
 
 /**
  * Finds elastica documents and map them to persisted objects
@@ -36,14 +37,41 @@ class TransformedFinder implements PaginatedFinderInterface
     {
         $results = $this->search($query, $limit);
 
-        return $this->transformer->transform($results);
+        return $this->transformResultSet($results);
     }
 
     public function findHybrid($query, $limit = null)
     {
-        $results = $this->search($query, $limit);
+        $results = $this->search($query, $limit)->getResults();
 
         return $this->transformer->hybridTransform($results);
+    }
+
+    /**
+     * Search for a query and return full result set.
+     * 
+     * @param string $query
+     * @param integer $limit
+     * @return Elastica_ResultSet
+     */
+    public function findResultSet($query, $limit = null)
+    {
+        $results = $this->search($query, $limit);
+
+        return $results;
+    }
+
+    /**
+     * Transforms Elastica_ResultSet into an array of model objects.
+     * 
+     * @param Elastica_ResultSet $resultSet
+     * @return array of model objects
+     */
+    public function transformResultSet(Elastica_ResultSet $resultSet)
+    {
+        $results = $resultSet->getResults();
+        
+        return $this->transformer->transform($results);
     }
 
     protected function search($query, $limit = null)
@@ -52,7 +80,7 @@ class TransformedFinder implements PaginatedFinderInterface
         if (null !== $limit) {
             $queryObject->setLimit($limit);
         }
-        $results = $this->searchable->search($queryObject)->getResults();
+        $results = $this->searchable->search($queryObject);
 
         return $results;
     }
